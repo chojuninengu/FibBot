@@ -1,0 +1,9 @@
+inputs:
+  enable_fib:
+    description: "Enable Fibonacci calculation"
+    required: true
+    default: "true"
+  max_threshold:
+    description: "Maximum number for Fibonacci calculation"
+    required: true
+    default: "100"
