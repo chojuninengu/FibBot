@@ -4,6 +4,6 @@ inputs:
     required: true
     default: "true"
   max_threshold:
-    description: "Maximum number for Fibonacci calculation"
-    required: true
-    default: "100"
+    description: "Maximum number allowed"
+    required: false
+    default: "1000"
