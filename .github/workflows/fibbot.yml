@@ -12,4 +12,4 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run FibBot in Docker
-        run: docker run --rm your-dockerhub-username/fibbot
+        run: docker run --rm your-dockerhub-username/fibbot 
