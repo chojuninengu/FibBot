@@ -20,7 +20,7 @@ RUN cargo build --release --target=x86_64-unknown-linux-musl
 # ---- Stage 2: Minimal Runtime ----
 FROM scratch  # Completely empty base image
 
-# Set working directory
+# Set working directory 
 WORKDIR /app
 
 # Copy the compiled static binary from builder stage
