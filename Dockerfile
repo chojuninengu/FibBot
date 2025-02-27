@@ -26,5 +26,5 @@ WORKDIR /app
 # Copy the compiled static binary from builder stage
 COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/fibbot /app/fibbot
 
-# Set the default command to execute the binary
+# Set the default command to execute the binary 
 CMD ["/app/fibbot"]
