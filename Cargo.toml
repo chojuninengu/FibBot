@@ -8,3 +8,4 @@ edition = "2021"
 [[bin]]
 name = "fibbot"
 path = "src/main.rs"
+ 
