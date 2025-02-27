@@ -1,5 +1,5 @@
 # ---- Stage 1: Build ----
-FROM rust:1.76 as builder
+FROM rust:1.83 AS builder
 
 # Install MUSL tools for static linking
 RUN apt-get update && apt-get install -y musl-tools
@@ -18,13 +18,10 @@ COPY src ./src
 RUN cargo build --release --target=x86_64-unknown-linux-musl
 
 # ---- Stage 2: Minimal Runtime ----
-FROM scratch  # Completely empty base image
+FROM scratch
 
-# Set working directory 
-WORKDIR /app
+# Copy the compiled binary
+COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/fibbot /fibbot
 
-# Copy the compiled static binary from builder stage
-COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/fibbot /app/fibbot
-
-# Set the default command to execute the binary 
-CMD ["/app/fibbot"]
+# Set execution command
+CMD ["/fibbot"]

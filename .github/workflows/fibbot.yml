@@ -1,0 +1,15 @@
+name: "FibBot PR Scan"
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  run-fibbot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Run FibBot
+        run: docker run --rm your-dockerhub-username/fibbot ${{ github.event.pull_request.body }}
