@@ -1,22 +1,31 @@
-name: "FibBot PR Scan"
+name: FibBot Action
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, reopened] 
+  push:
+    branches:
+      - master 
 
 jobs:
-  run-fibbot:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-      - name: Log in to GitHub Container Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      - name: Set up Docker
+        run: |
+          docker build -t fibbot .
 
-      - name: Pull latest FibBot image
-        run: docker pull ghcr.io/chojuninengu/fibbot:latest || true
-
-      - name: Run FibBot
-        run: docker run --rm ghcr.io/chojuninengu/fibbot "${{ github.event.pull_request.body }}"
+      - name: Run FibBot Docker container
+        run: |
+          docker run \
+            -e INPUT_ENABLE_FIB=true \
+            -e INPUT_MAX_THRESHOLD=1000 \
+            -e GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
+            -e GITHUB_API_URL=https://api.github.com \
+            -e GITHUB_REPOSITORY=${{ github.repository }} \
+            -e GITHUB_REF=${{ github.head_ref }} \
+            fibbot
