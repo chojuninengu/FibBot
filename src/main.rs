@@ -6,4 +6,6 @@ fn main() {
 
     println!("Enable Fibonacci: {}", enable_fib);
     println!("Max Threshold: {}", max_threshold);
+
+    println!("Hello, world!1");
 }
