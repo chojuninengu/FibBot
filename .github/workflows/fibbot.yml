@@ -1,15 +1,31 @@
-name: "FibBot PR Scan"
+name: FibBot Action
 
 on:
   pull_request:
-    types: [opened, synchronize]
+    types: [opened, synchronize, reopened] 
+  push:
+    branches:
+      - master 
 
 jobs:
-  run-fibbot:
+  build:
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
 
-      - name: Run FibBot
-        run: docker run --rm your-dockerhub-username/fibbot ${{ github.event.pull_request.body }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Docker
+        run: |
+          docker build -t fibbot .
+
+      - name: Run FibBot Docker container
+        run: |
+          docker run \
+            -e INPUT_ENABLE_FIB=true \
+            -e INPUT_MAX_THRESHOLD=1000 \
+            -e GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} \
+            -e GITHUB_API_URL=https://api.github.com \
+            -e GITHUB_REPOSITORY=${{ github.repository }} \
+            -e GITHUB_REF=${{ github.head_ref }} \
+            fibbot
