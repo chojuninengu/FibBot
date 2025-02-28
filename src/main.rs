@@ -1,11 +1,13 @@
-use std::env;
+mod fetch_pr;
 
 fn main() {
-    let enable_fib = env::var("INPUT_ENABLE_FIB").unwrap_or("true".to_string());
-    let max_threshold = env::var("INPUT_MAX_THRESHOLD").unwrap_or("1000".to_string());
+    let owner = "chojuninengu";  // Replace with actual repo owner
+    let repo = "FibBot";         // Replace with actual repo name
+    let pr_number = 1;           // Replace with actual PR number
 
-    println!("Enable Fibonacci: {}", enable_fib);
-    println!("Max Threshold: {}", max_threshold);
-
-    println!("Hello, world!1");
+    if let Some(pr_body) = fetch_pr::fetch_pr_body(owner, repo, pr_number) {
+        println!("PR Body: {}", pr_body);
+    } else {
+        println!("Failed to fetch PR body.");
+    }
 }

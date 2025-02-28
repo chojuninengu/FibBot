@@ -7,11 +7,16 @@ on:
 jobs:
   run-fibbot:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Pull latest FibBot image
+        run: docker pull ghcr.io/chojuninengu/fibbot:latest || true
+
       - name: Run FibBot
-        run: docker run --rm your-dockerhub-username/fibbot ${{ github.event.pull_request.body }}
-
-
+        run: docker run --rm ghcr.io/chojuninengu/fibbot "${{ github.event.pull_request.body }}"
