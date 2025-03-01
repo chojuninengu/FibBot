@@ -25,7 +25,7 @@ mod tests {
         env::set_var("GITHUB_TOKEN", "test_token");
         env::set_var("GITHUB_API_URL", "https://api.github.com");
         env::set_var("GITHUB_REPOSITORY", "test/repo");
-        env::set_var("GITHUB_REF", "test_ref");
+        env::set_var("PR_NUMBER", "42");
 
         let fib_numbers = vec![1, 1, 2, 3, 5, 8, 13];
 
