@@ -1,28 +1,33 @@
-name: 'FibBot'
-description: 'Action to calculate Fibonacci numbers and post them to GitHub PRs'
+name: "FibBot"
+description: "Scans Pull Request content for numbers, calculates their Fibonacci numbers, and posts a comment."
+author: "cho"
+
 inputs:
   pr_number:
-    description: 'Pull request number'
+    description: "The number of the pull request"
     required: true
-    default: ''
   enable_fib:
-    description: 'Enable Fibonacci calculation'
-    required: true
-    default: 'true'
+    description: "Enable Fibonacci calculation (true/false)"
+    required: false
+    default: "true"
   max_threshold:
-    description: 'Maximum Fibonacci threshold'
-    required: true
-    default: '100'
+    description: "Max threshold for Fibonacci calculation"
+    required: false
+    default: "100"
   github_token:
-    description: 'GitHub token for authentication'
+    description: "GitHub token to interact with GitHub API"
     required: true
+
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    - name: Build FibBot
+      run: cargo build --release
+      shell: bash
+
     - name: Run FibBot
-      shell: bash  # Specify the shell here, if running shell commands
       run: |
-        # Your script or Rust binary execution command here
-        echo "Running FibBot..."
+        export PR_NUMBER="${{ inputs.pr_number }}"
+        export GITHUB_TOKEN="${{ inputs.github_token }}"
+        ./target/release/fibbot "${{ inputs.enable_fib }}" "${{ inputs.max_threshold }}"
+      shell: bash
