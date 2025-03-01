@@ -1,37 +1,33 @@
-use reqwest::blocking::Client;
-use serde_json::json;
+use reqwest::Client;
 use std::env;
 
-pub fn fetch_pr_content() -> String {
-    "Here are the numbers: 5, 8, 13, 21".to_string()
-}
+pub async fn post_comment(pr_content: &str) -> Result<(), reqwest::Error> {
+    let repo = env::var("GITHUB_REPOSITORY").expect("GITHUB_REPOSITORY not set");
+    let pr_number = env::var("PR_NUMBER")
+        .expect("PR_NUMBER not set")
+        .parse::<u32>()
+        .expect("Invalid PR_NUMBER");
+    let github_token = env::var("GITHUB_TOKEN").expect("GITHUB_TOKEN not set");
 
-pub fn post_to_github(fib_numbers: &[i32]) -> Result<(), reqwest::Error> {
-    let token = env::var("GITHUB_TOKEN").expect("Missing GITHUB_TOKEN environment variable");
-    let repo = env::var("GITHUB_REPOSITORY").expect("Missing GITHUB_REPOSITORY environment variable");
-    let pr_number = env::var("GITHUB_REF").expect("Missing GITHUB_REF environment variable");
-    let api_url = env::var("GITHUB_API_URL").unwrap_or_else(|_| "https://api.github.com".to_string());
-
-    let pr_url = format!("{}/repos/{}/issues/{}/comments", api_url, repo, pr_number);
+    let url = format!(
+        "https://api.github.com/repos/{}/issues/{}/comments",
+        repo, pr_number
+    );
 
     let client = Client::new();
-    let response = client.post(&pr_url)
-        .header("Authorization", format!("Bearer {}", token))
-        .json(&json!({
-            "body": format!("Fibonacci results: {:?}", fib_numbers),
-        }))
-        .send();
+    let response = client
+        .post(&url)
+        .header("Authorization", format!("Bearer {}", github_token))
+        .header("User-Agent", "FibBot")
+        .header("Accept", "application/vnd.github.full+json")
+        .json(&serde_json::json!({ "body": pr_content }))
+        .send()
+        .await?;
 
-    match response {
-        Ok(res) if res.status().is_success() => {
-            println!("Comment posted successfully.");
-        }
-        Ok(res) => {
-            eprintln!("Failed to post comment: {}", res.status());
-        }
-        Err(e) => {
-            eprintln!("Error posting comment: {}", e);
-        }
+    if response.status().is_success() {
+        println!("✅ Comment posted successfully.");
+    } else {
+        eprintln!("❌ Failed to post comment: {:?}", response.text().await?);
     }
 
     Ok(())
