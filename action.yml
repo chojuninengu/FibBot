@@ -1,6 +1,6 @@
 name: "FibBot"
 description: "Scans Pull Request content for numbers, calculates their Fibonacci numbers, and posts a comment."
-author: "Your Name"
+author: "cho"
 
 inputs:
   enable_fib:
