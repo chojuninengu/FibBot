@@ -1,4 +1,4 @@
-# Fibbot GitHub Action
+# FibBot GitHub Action
 
 A GitHub Action written in Rust that scans pull request content for numbers, calculates their Fibonacci values, and posts the results as a comment.  
 
