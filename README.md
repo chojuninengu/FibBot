@@ -1,30 +1,32 @@
-# FibBot
+# Fibbot GitHub Action
 
-FibBot is a GitHub bot that scans pull requests for numbers, calculates their Fibonacci numbers, and posts a comment with the results. It is built in Rust and uses the GitHub API to interact with pull requests.
+A GitHub Action written in Rust that scans pull request content for numbers, calculates their Fibonacci values, and posts the results as a comment.  
 
-## Features
+## Features  (What the Bot is all about)
+- Extracts numbers from pull requests  
+- Computes Fibonacci numbers  
+- Posts results as a comment  
+- Configurable with a flag and threshold  
 
-- **Fibonacci Calculation**: Computes Fibonacci numbers for numbers found in pull request content.
-- **GitHub Integration**: Posts comments on pull requests with the Fibonacci results.
-- **Customizable Threshold**: Allows setting a maximum threshold for Fibonacci calculations.
-- **Docker Support**: Can be run in a Docker container for easy deployment.
 
-## Prerequisites
 
-Before using FibBot, ensure you have the following installed:
+### That which must be installed in your machine 
+- Rust 
+- Docker (for building and testing)  
 
-- **Rust**: Install Rust from [rustup.rs](https://rustup.rs/).
-- **Docker**: Install Docker from [docker.com](https://www.docker.com/).
-- **GitHub Token**: Generate a personal access token with `repo` scope from GitHub.
+### Build the Action  
+```sh
+git clone https://github.com/chojuninengu/FibBot.git  
+cd FibBot  
+cargo build --release  
+docker build -t FibBot.
+```
+```sh
+docker run --rm \
+  -e GITHUB_TOKEN=your_token \
+  -e GITHUB_REPOSITORY=owner/repo \
+  -e PR_NUMBER=123 \
+  fibbot --enable-fib --max-threshold 100
+```
 
-## Setup
 
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/chojuninengu/FibBot.git
-cd FibBot
-1
-2
-3
-4
