@@ -24,3 +24,7 @@ Before using FibBot, ensure you have the following installed:
 ```bash
 git clone https://github.com/chojuninengu/FibBot.git
 cd FibBot
+1
+2
+3
+4
