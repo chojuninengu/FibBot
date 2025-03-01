@@ -9,7 +9,9 @@ pub fn fetch_pr_content() -> String {
 pub fn post_to_github(fib_numbers: &[i32]) -> Result<(), reqwest::Error> {
     let token = env::var("GITHUB_TOKEN").expect("Missing GITHUB_TOKEN environment variable");
     let repo = env::var("GITHUB_REPOSITORY").expect("Missing GITHUB_REPOSITORY environment variable");
-    let pr_number = env::var("PR_NUMBER").expect("Missing PR_NUMBER environment variable");
+    let pr_ref = env::var("GITHUB_REF").expect("Missing GITHUB_REF environment variable");
+    let pr_number = pr_ref.split('/').nth(2).expect("Failed to extract PR number");
+
     let api_url = env::var("GITHUB_API_URL").unwrap_or_else(|_| "https://api.github.com".to_string());
 
     let pr_url = format!("{}/repos/{}/issues/{}/comments", api_url, repo, pr_number);
@@ -36,3 +38,4 @@ pub fn post_to_github(fib_numbers: &[i32]) -> Result<(), reqwest::Error> {
 
     Ok(())
 }
+
