@@ -1,0 +1,19 @@
+# Build the Docker image
+build:
+	docker build -t fibbot .
+
+# Run the container with necessary environment variables
+exec:
+	if [ -z "$GITHUB_TOKEN" ] || [ -z "$GITHUB_REPOSITORY" ] || [ -z "$PR_NUMBER" ]; then
+		echo "Missing one of the required variables: GITHUB_TOKEN, GITHUB_REPOSITORY, PR_NUMBER"
+	else 
+		docker run -it --rm \
+			-e GITHUB_TOKEN=$$GITHUB_TOKEN \
+			-e GITHUB_REPOSITORY=$$GITHUB_REPOSITORY \
+			-e PR_NUMBER=$$PR_NUMBER \
+			fibbot
+	fi
+
+start:
+	$(MAKE) build
+	$(MAKE) exec

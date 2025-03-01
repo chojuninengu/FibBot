@@ -1,29 +1,22 @@
-name: "Run FibBot"
+name: Compute Fibonacci on PR content
 
 on:
   pull_request:
-    types: [opened, synchronize]
-
-permissions:
-  pull-requests: write
-  contents: read
+    types: [opened, synchronize, reopened]
 
 jobs:
-  run-fibbot:
+  insights:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    permissions: 
+      issues: write
+      contents: read
       pull-requests: write
-      repository-projects: write
 
     steps:
-      - name: Checkout repository
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Run FibBot
-        uses: chojuninengu/FibBot@master
+      - name: Run Rust Action
+        uses: ./
         with:
           pr_number: ${{ github.event.pull_request.number }}
-          enable_fib: "true"
-          max_threshold: "100"
-          github_token: ${{ secrets.GITHUB_TOKEN }}  

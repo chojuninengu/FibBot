@@ -1,10 +1,17 @@
+# Stage 1: Build the Rust binary
 FROM rust:latest AS builder
 
-WORKDIR /usr/src/fibbot
-RUN mkdir -p /usr/src/fibbot
+WORKDIR /fibbot
 
 COPY . .
 
-RUN apt-get update && apt-get install -y build-essential
 RUN cargo build --release
-RUN ls -l /usr/src/fibbot/target/release/
+
+# Stage 2: Create the runtime image
+FROM debian:buster-slim
+
+WORKDIR /app
+
+COPY --from=builder /fibbot/target/release/fibbot /fibbot
+
+ENTRYPOINT ["/fibbot"]
