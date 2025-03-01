@@ -21,7 +21,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run FibBot
-        uses: Cho-Ju-nine-ngu/FibBot@master
+        uses: chojuninengu/FibBot@master
         with:
           pr_number: ${{ github.event.pull_request.number }}
           enable_fib: "true"
