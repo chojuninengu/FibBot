@@ -1,22 +1,18 @@
 name: "FibBot"
 description: "Scans Pull Request content for numbers, calculates their Fibonacci numbers, and posts a comment."
-author: "chojuninengu"
+author: "Your Name"
 
 inputs:
-  pr_number:
-    description: "The number of the pull request"
-    required: true
   enable_fib:
     description: "Enable Fibonacci calculation (true/false)"
-    required: false
-    default: "true"
+    required: true
   max_threshold:
-    description: "Max threshold for Fibonacci calculation"
-    required: false
-    default: "100"
+    description: "The maximum number to compute"
+    required: true
 
 runs:
   using: "docker"
   image: "Dockerfile"
   args:
-    - ${{ inputs.pr_number }}
+    - ${{ inputs.enable_fib }}
+    - ${{ inputs.max_threshold }}

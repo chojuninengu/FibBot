@@ -7,14 +7,14 @@ on:
 jobs:
   insights:
     runs-on: ubuntu-latest
-    permissions: 
+    permissions:
       issues: write
       contents: read
       pull-requests: write
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Run Rust Action
         uses: ./

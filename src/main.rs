@@ -1,132 +1,70 @@
+mod fib;
+mod github_api;
+mod test;
+
+use num_bigint::BigUint;
+use std::env;
 use tokio;
-use octocrab::Octocrab;
-use std::error::Error;
 
-// Internal configuration module
-mod config {
-    pub struct Config {
-        pub enable_fib: bool,
-        pub max_threshold: u32,
-    }
-
-    impl Config {
-        pub fn new() -> Self {
-            Config {
-                enable_fib: true,
-                max_threshold: 21,
-            }
-        }
-    }
-}
-
-// Module that computes Fibonacci numbers
-mod fib {
-    pub fn fibonacci(n: u32) -> u64 {
-        if n == 0 {
-            return 0;
-        }
-        let mut a = 0;
-        let mut b = 1;
-        for _ in 1..n {
-            let temp = a + b;
-            a = b;
-            b = temp;
-        }
-        b
-    }
-}
-
-// Module that extracts numbers from pull request content
-mod pr_parser {
-    use regex::Regex;
-    
-    pub fn extract_numbers(pr_content: &str) -> Vec<u32> {
-        let re = Regex::new(r"\d+").unwrap(); // Matches one or more digits
-        re.find_iter(pr_content)
-            .filter_map(|digits| digits.as_str().parse::<u32>().ok())
-            .collect()
-    }
-}
-
-// Module that fetches PR details
-mod github {
-    use octocrab::Octocrab;
-    use std::error::Error;
-    
-    pub async fn get_pr(pr_number: u64) -> Vec<u32> {
-        let octocrab = Octocrab::builder().build().unwrap();
-        let files = octocrab
-            .pulls("chojuninengu", "FibBot") // Update with your repo
-            .list_files(pr_number)
-            .await;
-        
-        let files = match files {
-            Ok(result) => result.items,
-            Err(e) => {
-                eprintln!("Error fetching PR files: {}", e);
-                return vec![];
-            }
-        };
-        
-        let mut pr_content = String::new();
-        for file in files {
-            if let Some(patch) = file.patch {
-                pr_content.push_str(&patch);
-            }
-        }
-        
-        println!("Pull Request Contents:\n{}", pr_content);
-        let nums = crate::pr_parser::extract_numbers(&pr_content);
-        println!("Collected Nums: {:?}", nums);
-        nums
-    }
-
-    pub async fn post_comment(owner: &str, repo: &str, pr_number: u64, comment: &str) -> Result<(), Box<dyn Error>> {
-        let octocrab = Octocrab::builder().build().unwrap();
-        
-        let comment_body = serde_json::json!({ "body": comment });
-        
-        octocrab
-            .issues(owner, repo)
-            .create_comment(pr_number, &comment_body)
-            .await?;
-        
-        println!("✅ Successfully posted Fibonacci results to PR #{}", pr_number);
-        Ok(())
-    }
-}
-
-use config::Config;
 use fib::fibonacci;
-use github::{get_pr, post_comment};
+use github_api::GhAPIClient;
+use test::{extract_numbers_from_text, parse_bool};
 
 #[tokio::main]
-async fn main() {
-    let config = Config::new();
-    let pr_number = 1; // Replace this with the actual PR number dynamically
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let args = env::args().collect::<Vec<String>>();
 
-    println!("Fetching PR content...");
-    let pr_numbers = get_pr(pr_number).await;
-    
-    if pr_numbers.is_empty() {
-        println!("No numbers found in this pull request.");
-        return;
+    if args.len() != 3 {
+        panic!("Mismatch required params, exactly two params are required: enable_fib, max_threshold");
     }
 
-    let mut response = String::from("#### Fibonacci output of each number in the pull request is:\n");
-    for &num in &pr_numbers {
-        if num <= config.max_threshold {
-            let fib_val = fibonacci(num);
-            response.push_str(&format!("- Fibonacci({}) = {}\n", num, fib_val));
-        } else {
-            response.push_str(&format!("- Skipping Fibonacci({}) due to threshold\n", num));
+    println!("Args: {:?}", args);
+
+    let gh_token = env::var("GITHUB_TOKEN").expect("Could not read GITHUB_TOKEN from env.");
+    let gh_repo = env::var("GITHUB_REPOSITORY").expect("Could not read GITHUB_REPOSITORY from env.");
+    let pr_number = env::var("PR_NUMBER").expect("Could not read PR_NUMBER from env.");
+
+    let gh_api = GhAPIClient::new(&gh_token, &gh_repo);
+
+    let [_, enable_fib, max_threshold] = args.as_slice() else {
+        panic!("Failed to read args");
+    };
+
+    let enable_fib = parse_bool(&enable_fib.trim()).expect("Could not parse enable_fib from params");
+    let max_threshold = max_threshold.trim().parse().expect("Could not parse max_threshold from params");
+    let pr_number = pr_number.parse().expect("Could not parse PR number");
+
+    let pr_diff_entry = gh_api.get_pull_request_files(pr_number).await?;
+
+    let mut numbers = Vec::new();
+
+    for item in pr_diff_entry {
+        if let Some(text) = item.patch {
+            numbers.append(&mut extract_numbers_from_text(text, max_threshold));
         }
     }
 
-    // Post comment to the PR
-    if let Err(e) = post_comment("chojuninengu", "FibBot", pr_number, &response).await {
-        eprintln!("Error posting comment: {}", e);
+    println!("Numbers from PR content: {:?}", numbers);
+
+    if enable_fib {
+        let fibonaccies = numbers
+            .iter()
+            .map(|num| (*num, fibonacci(*num)))
+            .collect::<Vec<(u32, BigUint)>>();
+
+        let comment = if fibonaccies.is_empty() {
+            format!("Numberless PR: Nothing to Compute...")
+        } else {
+            format!("Fibonaccies: {:?}", fibonaccies)
+        };
+
+        println!("{comment}");
+
+        // Post response as PR comments
+        gh_api.post_issue_comment(pr_number, &comment).await?;
     } else {
-        println!("✅ Comment successfully posted to PR #{}", pr_number);
+        println!("Fibbot was disabled!");
     }
+
+    Ok(())
 }
