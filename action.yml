@@ -1,9 +1,39 @@
+name: "FibBot"
+description: "Scans Pull Request content for numbers, calculates their Fibonacci numbers, and posts a comment."
+author: "Your Name"
+
 inputs:
-  enable_fib:
-    description: "Enable Fibonacci calculation"
+  pr_number:
+    description: "The number of the pull request"
     required: true
+  enable_fib:
+    description: "Enable Fibonacci calculation (true/false)"
+    required: false
     default: "true"
   max_threshold:
-    description: "Maximum number allowed"
+    description: "Max threshold for Fibonacci calculation"
     required: false
-    default: "1000"
+    default: "100"
+  github_token:
+    description: "GitHub token to interact with GitHub API"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Docker
+      run: |
+        docker build -t fibbot .
+
+    - name: Run FibBot
+      run: |
+        docker run \
+          -e PR_NUMBER="${{ inputs.pr_number }}" \
+          -e GITHUB_TOKEN="${{ inputs.github_token }}" \
+          -e GITHUB_REPOSITORY="${{ github.repository }}" \
+          -e GITHUB_API_URL="https://api.github.com" \
+          fibbot
+      shell: bash
