@@ -1,26 +1,42 @@
-use crate::pr_parser::extract_numbers;
-use octocrab::Octocrab;
-use std::error::Error;
+use octocrab::{models::issues::Comment, models::repos::DiffEntry, Error, Octocrab, OctocrabBuilder, Page};
+use std::sync::Arc;
 
-pub async fn get_pr(pr_number: u64) -> Result<Vec<u32>, Box<dyn Error>> {
-    // Initialize Octocrab instance
-    let octocrab = Octocrab::default();
+pub struct GhAPIClient<'a> {
+    owner: &'a str,
+    gh_repo: &'a str,
+    instance: Arc<Octocrab>,
+}
 
-    // Fetch PR files
-    let files = octocrab
-        .pulls("chojuninengu", "FibBot")  // Replace with your repo details
-        .list_files(pr_number)
-        .send()
-        .await?;
+impl<'a> GhAPIClient<'a> {
+    pub fn new(gh_token: &'a str, github_repo: &'a str) -> Self {
+        let split_values = github_repo.split("/").collect::<Vec<_>>();
+        let owner = split_values[0];
+        let gh_repo = split_values[1];
+        println!("Owner: {owner}, Repo: {gh_repo}");
 
-    // Extract the first file's patch content
-    let files = files.items.first().and_then(|f| f.patch.clone()).unwrap_or_default();
+        let octocrab_builder = OctocrabBuilder::new()
+            .personal_token(gh_token)
+            .build()
+            .expect("Failed to initialize Octocrab");
 
-    println!("Pull Request Contents:\n{}", files);
+        GhAPIClient {
+            owner,
+            gh_repo,
+            instance: Arc::new(octocrab_builder),
+        }
+    }
 
-    // Extract numbers from the PR patch
-    let nums = extract_numbers(&files);
-    println!("Collected Nums: {nums:?}");
+    pub async fn get_pull_request_files(&self, pr_number: u64) -> Result<Page<DiffEntry>, Error> {
+        self.instance
+            .pulls(self.owner, self.gh_repo)
+            .list_files(pr_number)
+            .await
+    }
 
-    Ok(nums)
+    pub async fn post_issue_comment(&self, pr_number: u64, comment: &str) -> Result<Comment, Error> {
+        self.instance
+            .issues(self.owner, self.gh_repo)
+            .create_comment(pr_number, comment)
+            .await
+    }
 }
