@@ -15,3 +15,4 @@ WORKDIR /app
 COPY --from=builder /fibbot/target/release/fibbot /fibbot
 
 ENTRYPOINT ["/fibbot"]
+CMD ["$0", "$1"]  # Pass arguments to the binary
