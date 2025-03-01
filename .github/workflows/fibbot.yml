@@ -28,4 +28,4 @@ jobs:
             -e GITHUB_API_URL=https://api.github.com \
             -e GITHUB_REPOSITORY=${{ github.repository }} \
             -e GITHUB_REF=${{ github.head_ref }} \
-            fibbot
+            fibbota
