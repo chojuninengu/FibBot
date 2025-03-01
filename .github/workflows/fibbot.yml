@@ -20,16 +20,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Docker
-        run: |
-          docker build -t fibbot .
-
       - name: Run FibBot
-        run: |
-          docker run \
-            -e PR_NUMBER="${{ github.event.pull_request.number }}" \
-            -e GITHUB_TOKEN="${{ secrets.GITHUB_TOKEN }}" \
-            -e GITHUB_REPOSITORY="${{ github.repository }}" \
-            -e GITHUB_API_URL="https://api.github.com" \
-            fibbot
-        shell: bash
+        uses: chojuninengu/FibBot@master
+        with:
+          pr_number: ${{ github.event.pull_request.number }}
+          enable_fib: "true"
+          max_threshold: "100"
+          github_token: ${{ secrets.GITHUB_TOKEN }}  
