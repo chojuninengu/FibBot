@@ -3,6 +3,10 @@ use num_bigint::BigUint;
 use std::env;
 use tokio;
 
+mod fib;
+mod github_api;
+mod pr_parser;
+
 use fib::fibonacci;
 use github_api::GhAPIClient;
 use pr_parser::{extract_numbers_from_text, parse_bool};
