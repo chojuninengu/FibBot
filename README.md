@@ -21,6 +21,8 @@ cd FibBot
 cargo build --release  
 docker build -t FibBot.
 ```
+
+## How to run this in your local machine
 ```sh
 docker run --rm \
   -e GITHUB_TOKEN=your_token \
